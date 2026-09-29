@@ -1,10 +1,12 @@
 -- DHEN AIM LOCK + ESP
+-- Galaxy GUI + Bold Font
 -- LocalScript
 -- StarterPlayer > StarterPlayerScripts
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -45,20 +47,138 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
 --==================================================
+-- GALAXY COLORS
+--==================================================
+
+local GALAXY_DARK = Color3.fromRGB(8, 6, 22)
+local GALAXY_PURPLE = Color3.fromRGB(115, 65, 210)
+local GALAXY_BLUE = Color3.fromRGB(55, 100, 220)
+local GALAXY_BUTTON = Color3.fromRGB(28, 24, 55)
+local GALAXY_OFF = Color3.fromRGB(20, 18, 38)
+local WHITE = Color3.fromRGB(245, 245, 255)
+
+--==================================================
 -- MAIN PANEL
 --==================================================
 
 local panel = Instance.new("Frame")
 panel.Name = "MainPanel"
-panel.Size = UDim2.fromOffset(230, 360)
-panel.Position = UDim2.new(0.5, -115, 0.5, -180)
-panel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+panel.Size = UDim2.fromOffset(250, 380)
+panel.Position = UDim2.new(0.5, -125, 0.5, -190)
+panel.BackgroundColor3 = GALAXY_DARK
 panel.BorderSizePixel = 0
+panel.ClipsDescendants = true
 panel.Parent = gui
 
 local panelCorner = Instance.new("UICorner")
-panelCorner.CornerRadius = UDim.new(0, 10)
+panelCorner.CornerRadius = UDim.new(0, 14)
 panelCorner.Parent = panel
+
+-- Galaxy gradient
+
+local galaxyGradient = Instance.new("UIGradient")
+galaxyGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 5, 25)),
+	ColorSequenceKeypoint.new(0.35, Color3.fromRGB(35, 12, 65)),
+	ColorSequenceKeypoint.new(0.65, Color3.fromRGB(15, 25, 70)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 7, 25))
+})
+galaxyGradient.Rotation = 35
+galaxyGradient.Parent = panel
+
+-- Glow border
+
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Thickness = 2
+panelStroke.Color = GALAXY_PURPLE
+panelStroke.Transparency = 0.15
+panelStroke.Parent = panel
+
+--==================================================
+-- GALAXY STARS
+--==================================================
+
+math.randomseed(tick())
+
+for i = 1, 55 do
+	local star = Instance.new("Frame")
+
+	local size = math.random(1, 3)
+
+	star.Size = UDim2.fromOffset(size, size)
+
+	star.Position = UDim2.new(
+		math.random(),
+		0,
+		math.random(),
+		0
+	)
+
+	star.BackgroundColor3 = Color3.fromRGB(
+		math.random(170, 255),
+		math.random(170, 255),
+		255
+	)
+
+	star.BackgroundTransparency = math.random(20, 75) / 100
+	star.BorderSizePixel = 0
+	star.ZIndex = 1
+	star.Parent = panel
+
+	local starCorner = Instance.new("UICorner")
+	starCorner.CornerRadius = UDim.new(1, 0)
+	starCorner.Parent = star
+
+	task.spawn(function()
+		while star.Parent do
+
+			local fadeOut = TweenService:Create(
+				star,
+				TweenInfo.new(
+					math.random(7, 15) / 10,
+					Enum.EasingStyle.Sine,
+					Enum.EasingDirection.InOut
+				),
+				{
+					BackgroundTransparency = math.random(65, 95) / 100
+				}
+			)
+
+			fadeOut:Play()
+			fadeOut.Completed:Wait()
+
+			local fadeIn = TweenService:Create(
+				star,
+				TweenInfo.new(
+					math.random(7, 15) / 10,
+					Enum.EasingStyle.Sine,
+					Enum.EasingDirection.InOut
+				),
+				{
+					BackgroundTransparency = math.random(10, 45) / 100
+				}
+			)
+
+			fadeIn:Play()
+			fadeIn.Completed:Wait()
+		end
+	end)
+end
+
+--==================================================
+-- TITLE
+--==================================================
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.Position = UDim2.fromOffset(0, 5)
+title.BackgroundTransparency = 1
+title.Text = "DHEN"
+title.TextColor3 = WHITE
+title.TextSize = 19
+title.Font = Enum.Font.GothamBold
+title.ZIndex = 5
+title.Parent = panel
 
 --==================================================
 -- LOGO
@@ -67,300 +187,19 @@ panelCorner.Parent = panel
 local logo = Instance.new("TextButton")
 logo.Name = "DhenLogo"
 logo.Size = UDim2.fromOffset(60, 60)
-logo.Position = UDim2.new(0.5, -185, 0.5, -30)
-logo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+logo.Position = UDim2.new(0.5, -195, 0.5, -30)
+logo.BackgroundColor3 = GALAXY_DARK
 logo.Text = "D"
-logo.TextColor3 = Color3.new(1, 1, 1)
+logo.TextColor3 = WHITE
 logo.TextSize = 30
 logo.Font = Enum.Font.GothamBold
 logo.BorderSizePixel = 0
 logo.AutoButtonColor = false
+logo.ZIndex = 10
 logo.Parent = gui
 
-local logoCorner = Instance.new("UICorner")
-logoCorner.CornerRadius = UDim.new(1, 0)
-logoCorner.Parent = logo
-
-logo.MouseButton1Click:Connect(function()
-	panel.Visible = not panel.Visible
-end)
-
---==================================================
--- DRAG
---==================================================
-
-local dragging = false
-local dragStart
-local startPos
-
-panel.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = panel.Position
-
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-
-		panel.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-
-		logo.Position = UDim2.new(
-			panel.Position.X.Scale,
-			panel.Position.X.Offset - 70,
-			panel.Position.Y.Scale,
-			panel.Position.Y.Offset + 150
-		)
-	end
-end)
-
---==================================================
--- TITLE
---==================================================
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 35)
-title.BackgroundTransparency = 1
-title.Text = "DHEN"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 17
-title.Font = Enum.Font.GothamBold
-title.Parent = panel
-
---==================================================
--- TABS
---==================================================
-
-local aimTab = Instance.new("TextButton")
-aimTab.Size = UDim2.fromOffset(105, 32)
-aimTab.Position = UDim2.fromOffset(10, 35)
-aimTab.Text = "AIMBOT"
-aimTab.TextSize = 13
-aimTab.Font = Enum.Font.GothamBold
-aimTab.TextColor3 = Color3.new(1, 1, 1)
-aimTab.BackgroundColor3 = Color3.fromRGB(40, 150, 80)
-aimTab.BorderSizePixel = 0
-aimTab.Parent = panel
-
-local aimTabCorner = Instance.new("UICorner")
-aimTabCorner.CornerRadius = UDim.new(0, 6)
-aimTabCorner.Parent = aimTab
-
-local espTab = Instance.new("TextButton")
-espTab.Size = UDim2.fromOffset(105, 32)
-espTab.Position = UDim2.fromOffset(120, 35)
-espTab.Text = "ESP"
-espTab.TextSize = 13
-espTab.Font = Enum.Font.GothamBold
-espTab.TextColor3 = Color3.new(1, 1, 1)
-espTab.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-espTab.BorderSizePixel = 0
-espTab.Parent = panel
-
-local espTabCorner = Instance.new("UICorner")
-espTabCorner.CornerRadius = UDim.new(0, 6)
-espTabCorner.Parent = espTab
-
---==================================================
--- CONTENT
---==================================================
-
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -20, 1, -80)
-content.Position = UDim2.fromOffset(10, 75)
-content.BackgroundTransparency = 1
-content.Parent = panel
-
---==================================================
--- AIM TAB
---==================================================
-
-local aimContent = Instance.new("Frame")
-aimContent.Size = UDim2.new(1, 0, 1, 0)
-aimContent.BackgroundTransparency = 1
-aimContent.Parent = content
-
--- Team Check
-
-local teamButton = Instance.new("TextButton")
-teamButton.Size = UDim2.new(1, 0, 0, 32)
-teamButton.Position = UDim2.fromOffset(0, 0)
-teamButton.Text = "Team Check: ON"
-teamButton.TextColor3 = Color3.new(1, 1, 1)
-teamButton.TextSize = 13
-teamButton.Font = Enum.Font.Gotham
-teamButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-teamButton.BorderSizePixel = 0
-teamButton.Parent = aimContent
-
-Instance.new("UICorner", teamButton).CornerRadius = UDim.new(0, 6)
-
-teamButton.MouseButton1Click:Connect(function()
-	teamCheck = not teamCheck
-	teamButton.Text = "Team Check: " .. (teamCheck and "ON" or "OFF")
-end)
-
--- Wall Check
-
-local wallButton = teamButton:Clone()
-wallButton.Position = UDim2.fromOffset(0, 38)
-wallButton.Text = "Wall Check: ON"
-wallButton.Parent = aimContent
-
-wallButton.MouseButton1Click:Connect(function()
-	wallCheck = not wallCheck
-	wallButton.Text = "Wall Check: " .. (wallCheck and "ON" or "OFF")
-end)
-
--- FOV Check
-
-local fovButton = teamButton:Clone()
-fovButton.Position = UDim2.fromOffset(0, 76)
-fovButton.Text = "FOV Check: ON"
-fovButton.Parent = aimContent
-
-fovButton.MouseButton1Click:Connect(function()
-	fovCheck = not fovCheck
-	fovButton.Text = "FOV Check: " .. (fovCheck and "ON" or "OFF")
-end)
-
--- FOV Label
-
-local fovLabel = Instance.new("TextLabel")
-fovLabel.Size = UDim2.new(1, 0, 0, 25)
-fovLabel.Position = UDim2.fromOffset(0, 120)
-fovLabel.BackgroundTransparency = 1
-fovLabel.Text = "FOV: 180"
-fovLabel.TextColor3 = Color3.new(1, 1, 1)
-fovLabel.TextSize = 13
-fovLabel.Font = Enum.Font.Gotham
-fovLabel.Parent = aimContent
-
--- FOV Slider
-
-local fovSlider = Instance.new("TextButton")
-fovSlider.Size = UDim2.new(1, 0, 0, 8)
-fovSlider.Position = UDim2.fromOffset(0, 148)
-fovSlider.Text = ""
-fovSlider.AutoButtonColor = false
-fovSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-fovSlider.BorderSizePixel = 0
-fovSlider.Parent = aimContent
-
-Instance.new("UICorner", fovSlider).CornerRadius = UDim.new(1, 0)
-
-local fovFill = Instance.new("Frame")
-fovFill.Size = UDim2.new((FOV_RADIUS - 50) / 450, 0, 1, 0)
-fovFill.BackgroundColor3 = Color3.fromRGB(40, 150, 80)
-fovFill.BorderSizePixel = 0
-fovFill.Parent = fovSlider
-
-Instance.new("UICorner", fovFill).CornerRadius = UDim.new(1, 0)
-
-local function updateFOV(input)
-	local x = math.clamp(
-		input.Position.X - fovSlider.AbsolutePosition.X,
-		0,
-		fovSlider.AbsoluteSize.X
-	)
-
-	local percent = x / fovSlider.AbsoluteSize.X
-
-	FOV_RADIUS = math.floor(50 + percent * 450)
-
-	fovLabel.Text = "FOV: " .. FOV_RADIUS
-	fovFill.Size = UDim2.new(percent, 0, 1, 0)
-end
-
-fovSlider.MouseButton1Down:Connect(function()
-	local moveConnection
-
-	moveConnection = UserInputService.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			updateFOV(input)
-		end
-	end)
-
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			if moveConnection then
-				moveConnection:Disconnect()
-			end
-		end
-	end)
-end)
-
--- Smoothness Label
-
-local smoothLabel = Instance.new("TextLabel")
-smoothLabel.Size = UDim2.new(1, 0, 0, 25)
-smoothLabel.Position = UDim2.fromOffset(0, 180)
-smoothLabel.BackgroundTransparency = 1
-smoothLabel.Text = "Smoothness: 0.20"
-smoothLabel.TextColor3 = Color3.new(1, 1, 1)
-smoothLabel.TextSize = 13
-smoothLabel.Font = Enum.Font.Gotham
-smoothLabel.Parent = aimContent
-
--- Smoothness Slider
-
-local smoothSlider = Instance.new("TextButton")
-smoothSlider.Size = UDim2.new(1, 0, 0, 8)
-smoothSlider.Position = UDim2.fromOffset(0, 208)
-smoothSlider.Text = ""
-smoothSlider.AutoButtonColor = false
-smoothSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-smoothSlider.BorderSizePixel = 0
-smoothSlider.Parent = aimContent
-
-Instance.new("UICorner", smoothSlider).CornerRadius = UDim.new(1, 0)
-
-local smoothFill = Instance.new("Frame")
-smoothFill.Size = UDim2.new((AIM_SMOOTH - 0.05) / 0.95, 0, 1, 0)
-smoothFill.BackgroundColor3 = Color3.fromRGB(40, 150, 80)
-smoothFill.BorderSizePixel = 0
-smoothFill.Parent = smoothSlider
-
-Instance.new("UICorner", smoothFill).CornerRadius = UDim.new(1, 0)
-
-local function updateSmooth(input)
-	local x = math.clamp(
-		input.Position.X - smoothSlider.AbsolutePosition.X,
-		0,
-		smoothSlider.AbsoluteSize.X
-	)
-
-	local percent = x / smoothSlider.AbsoluteSize.X
-
-	AIM_SMOOTH = math.floor((0.05 + percent * 0.95) * 100) / 100
-
-	smoothLabel.Text = string.format("Smoothness: %.2f", AIM_SMOOTH)
-	smoothFill.Size = UDim2.new(percent, 0, 1, 0)
-end
-
-smoothSlider.MouseButton1Down:Connect(function()
-	local moveConnection
-
-	moveConnection = UserInputService.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			updateSmooth(input)
-		end
-	end)
-
-	UserInputService.InputEnded:Connect(function(input)
+local logoGradient = Instance.new("UIGradient")
+logoGradient.Color = Colored:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			if moveConnection then
 				moveConnection:Disconnect()
